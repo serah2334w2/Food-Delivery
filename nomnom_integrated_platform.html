@@ -1,0 +1,635 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+:root{
+  --primary:#D85A30;--primary-light:#FAECE7;--primary-dark:#993C1D;
+  --green:#1D9E75;--green-light:#E1F5EE;
+  --blue:#185FA5;--blue-light:#E6F1FB;
+  --amber:#BA7517;--amber-light:#FAEEDA;
+  --gray-bg:var(--color-background-secondary);
+  --border:var(--color-border-tertiary)
+}
+.app{min-height:600px;background:var(--color-background-tertiary)}
+.topbar{background:var(--primary);color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-logo{font-size:20px;font-weight:500;letter-spacing:-0.5px}
+.topbar-tabs{display:flex;gap:4px}
+.tab-btn{padding:6px 14px;border-radius:var(--border-radius-md);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.15s}
+.tab-btn.active{background:#fff;color:var(--primary)}
+.tab-btn:not(.active){background:rgba(255,255,255,0.15);color:#fff}
+.tab-btn:not(.active):hover{background:rgba(255,255,255,0.25)}
+.screen{display:none;padding:16px}
+.screen.active{display:block}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.stat-card{background:var(--color-background-primary);border:0.5px solid var(--border);border-radius:var(--border-radius-lg);padding:12px 14px}
+.stat-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.stat-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+
+.section-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin:16px 0 8px;text-transform:uppercase;letter-spacing:0.5px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--border);border-radius:var(--border-radius-lg);padding:14px}
+.card+.card{margin-top:10px}
+.card-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-green{background:var(--green-light);color:#0F6E56}
+.badge-amber{background:var(--amber-light);color:#633806}
+.badge-red{background:#FCEBEB;color:#791F1F}
+.badge-blue{background:var(--blue-light);color:#0C447C}
+.badge-gray{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+
+.food-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.food-card{background:var(--color-background-primary);border:0.5px solid var(--border);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer}
+.food-img{height:90px;display:flex;align-items:center;justify-content:center;font-size:36px}
+.food-info{padding:10px}
+.food-name{font-size:13px;font-weight:500;margin-bottom:3px}
+.food-price{font-size:13px;color:var(--primary);font-weight:500}
+.food-resto{font-size:11px;color:var(--color-text-secondary)}
+
+.map-area{background:linear-gradient(135deg,#e8f4ea 0%,#d4ecd8 100%);border-radius:var(--border-radius-lg);height:160px;position:relative;overflow:hidden;margin-bottom:12px;border:0.5px solid var(--border)}
+.map-road-h{position:absolute;height:4px;background:#fff;opacity:0.7;width:100%;top:50%;transform:translateY(-50%)}
+.map-road-v{position:absolute;width:4px;background:#fff;opacity:0.7;height:100%;left:40%}
+.map-pin{position:absolute;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #fff}
+.map-pin-driver{background:var(--primary);animation:pulse 2s infinite}
+.map-pin-resto{background:var(--blue);top:30%;left:35%}
+.map-pin-dest{background:var(--green);bottom:25%;right:25%}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(216,90,48,0.4)}50%{box-shadow:0 0 0 8px rgba(216,90,48,0)}}
+.driver-car{position:absolute;animation:driveCar 4s linear infinite}
+@keyframes driveCar{0%{left:10%;top:45%}50%{left:55%;top:45%}100%{left:55%;top:25%}}
+
+.order-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.order-item:last-child{border-bottom:none}
+.order-status-bar{display:flex;align-items:center;gap:0;margin:12px 0}
+.status-step{flex:1;text-align:center;position:relative}
+.status-step:not(:first-child)::before{content:'';position:absolute;left:-50%;width:100%;height:2px;background:var(--border);top:12px;z-index:0}
+.status-step.done:not(:first-child)::before{background:var(--green)}
+.status-dot{width:24px;height:24px;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:10px;position:relative;z-index:1}
+.status-dot.done{background:var(--green-light);color:#0F6E56;border:2px solid var(--green)}
+.status-dot.active{background:var(--primary-light);color:var(--primary-dark);border:2px solid var(--primary)}
+.status-dot.pending{background:var(--color-background-secondary);color:var(--color-text-secondary);border:2px solid var(--border)}
+.status-label{font-size:10px;color:var(--color-text-secondary)}
+
+.btn{padding:10px 18px;border-radius:var(--border-radius-md);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.15s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:transparent;color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary)}
+.btn-outline:hover{background:var(--color-background-secondary)}
+.btn-full{width:100%;margin-top:10px}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#0F6E56}
+
+.input-wrap{margin-bottom:12px}
+.input-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+input[type=text],select{width:100%;padding:8px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary)}
+.search-bar{display:flex;gap:8px;margin-bottom:14px}
+.search-bar input{flex:1}
+
+.menu-item-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.menu-item-row:last-child{border-bottom:none}
+.menu-edit-btns{display:flex;gap:6px}
+.qty-ctrl{display:flex;align-items:center;gap:8px}
+.qty-btn{width:26px;height:26px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--color-text-primary)}
+.qty-num{font-size:14px;font-weight:500;min-width:20px;text-align:center}
+
+.delivery-list .card{cursor:pointer;transition:all 0.15s}
+.delivery-list .card:hover{border-color:var(--primary)}
+.info-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.info-row .lbl{color:var(--color-text-secondary)}
+.chart-bar-wrap{display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:10px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{background:var(--primary-light);border-radius:4px 4px 0 0;width:100%;min-height:4px;transition:height 0.3s}
+.bar-lbl{font-size:10px;color:var(--color-text-secondary)}
+.bar-val{font-size:10px;color:var(--color-text-secondary)}
+
+.notif-dot{width:8px;height:8px;border-radius:50%;background:#E24B4A;position:absolute;top:-2px;right:-2px}
+.cart-badge{background:#E24B4A;color:#fff;font-size:10px;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-left:4px;vertical-align:middle}
+
+.tabs-inner{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px}
+.tab-inner-btn{padding:6px 14px;border-radius:20px;border:0.5px solid var(--border);background:var(--color-background-primary);cursor:pointer;font-size:12px;white-space:nowrap;color:var(--color-text-primary)}
+.tab-inner-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.hidden{display:none}
+.rating{color:#EF9F27;font-size:13px}
+.promo-banner{background:linear-gradient(90deg,#D85A30,#BA7517);border-radius:var(--border-radius-lg);padding:14px 16px;color:#fff;margin-bottom:14px}
+.promo-title{font-size:15px;font-weight:500;margin-bottom:3px}
+.promo-sub{font-size:12px;opacity:0.85}
+.alert{padding:10px 14px;border-radius:var(--border-radius-md);margin-bottom:12px;font-size:13px;display:flex;align-items:center;gap:8px}
+.alert-success{background:var(--green-light);color:#085041;border:0.5px solid #5DCAA5}
+.alert-warn{background:var(--amber-light);color:#412402;border:0.5px solid #FAC775}
+.bottom-bar{position:sticky;bottom:0;background:var(--color-background-primary);border-top:0.5px solid var(--border);padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
+.total-text{font-size:14px;font-weight:500}
+.total-sub{font-size:11px;color:var(--color-text-secondary)}
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-logo">NomNom</div>
+    <div class="topbar-tabs">
+      <button class="tab-btn active" onclick="switchDash('buyer')">Pembeli</button>
+      <button class="tab-btn" onclick="switchDash('seller')">Penjual</button>
+      <button class="tab-btn" onclick="switchDash('driver')">Driver</button>
+    </div>
+  </div>
+
+  <!-- ===================== PEMBELI ===================== -->
+  <div class="screen active" id="screen-buyer">
+    <div class="tabs-inner">
+      <button class="tab-inner-btn active" onclick="buyerTab(this,'home')">Beranda</button>
+      <button class="tab-inner-btn" onclick="buyerTab(this,'track')">Lacak Pesanan</button>
+      <button class="tab-inner-btn" onclick="buyerTab(this,'history')">Riwayat</button>
+      <button class="tab-inner-btn" onclick="buyerTab(this,'profile')">Profil</button>
+    </div>
+
+    <!-- Buyer Home -->
+    <div id="buyer-home">
+      <div class="promo-banner">
+        <div class="promo-title">Gratis Ongkir hari ini!</div>
+        <div class="promo-sub">Pesan min. Rp 30.000, hemat hingga Rp 15.000</div>
+      </div>
+      <div class="search-bar">
+        <input type="text" placeholder="Cari makanan atau restoran..." id="searchInput" oninput="filterFood()">
+        <button class="btn btn-primary" onclick="filterFood()">Cari</button>
+      </div>
+      <div class="tabs-inner" id="catTabs">
+        <button class="tab-inner-btn active" onclick="filterCat(this,'all')">Semua</button>
+        <button class="tab-inner-btn" onclick="filterCat(this,'nasi')">Nasi</button>
+        <button class="tab-inner-btn" onclick="filterCat(this,'mie')">Mie</button>
+        <button class="tab-inner-btn" onclick="filterCat(this,'snack')">Snack</button>
+        <button class="tab-inner-btn" onclick="filterCat(this,'minuman')">Minuman</button>
+      </div>
+      <div class="food-grid" id="foodGrid"></div>
+      <div id="cartBar" class="hidden">
+        <div class="bottom-bar">
+          <div><div class="total-text" id="cartTotal">Rp 0</div><div class="total-sub" id="cartCount">0 item</div></div>
+          <button class="btn btn-primary" onclick="checkout()">Checkout →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buyer Track -->
+    <div id="buyer-track" class="hidden">
+      <div class="alert alert-success">Pesanan sedang dalam perjalanan!</div>
+      <div class="card">
+        <div class="card-row">
+          <div class="avatar" style="background:var(--primary-light);color:var(--primary-dark)">BK</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">Bakso Pak Kumis</div>
+            <div style="font-size:11px;color:var(--color-text-secondary)">3 item · Rp 58.000</div>
+          </div>
+          <span class="badge badge-amber">Diantar</span>
+        </div>
+        <div class="order-status-bar">
+          <div class="status-step done"><div class="status-dot done">✓</div><div class="status-label">Pesan</div></div>
+          <div class="status-step done"><div class="status-dot done">✓</div><div class="status-label">Konfirm</div></div>
+          <div class="status-step done"><div class="status-dot done">✓</div><div class="status-label">Masak</div></div>
+          <div class="status-step active"><div class="status-dot active" style="font-size:8px">🛵</div><div class="status-label">Diantar</div></div>
+          <div class="status-step pending"><div class="status-dot pending">5</div><div class="status-label">Tiba</div></div>
+        </div>
+        <div class="map-area">
+          <div class="map-road-h"></div>
+          <div class="map-road-v"></div>
+          <div class="map-pin map-pin-resto" title="Restoran">🍜</div>
+          <div class="map-pin map-pin-dest" title="Tujuan">📍</div>
+          <div class="map-pin map-pin-driver driver-car">🛵</div>
+        </div>
+        <div class="info-row"><span class="lbl">Driver</span><span style="font-weight:500">Agus Santoso</span></div>
+        <div class="info-row"><span class="lbl">Kendaraan</span><span>Honda Beat · B 1234 XY</span></div>
+        <div class="info-row"><span class="lbl">Est. tiba</span><span style="color:var(--green);font-weight:500">~8 menit</span></div>
+        <button class="btn btn-outline btn-full" onclick="hubungiDriver()">Hubungi Driver</button>
+      </div>
+    </div>
+
+    <!-- Buyer History -->
+    <div id="buyer-history" class="hidden">
+      <div class="section-title">Pesanan terakhir</div>
+      <div id="historyList"></div>
+    </div>
+
+    <!-- Buyer Profile -->
+    <div id="buyer-profile" class="hidden">
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-row">
+          <div class="avatar" style="width:56px;height:56px;font-size:18px;background:var(--primary-light);color:var(--primary-dark)">AU</div>
+          <div>
+            <div style="font-size:16px;font-weight:500">Andi Utomo</div>
+            <div style="font-size:12px;color:var(--color-text-secondary)">andi.utomo@email.com</div>
+            <div style="font-size:12px;color:var(--color-text-secondary)">+62 812-3456-7890</div>
+          </div>
+        </div>
+        <div style="border-top:0.5px solid var(--border);padding-top:12px;margin-top:4px">
+          <div class="info-row"><span class="lbl">Total pesanan</span><span style="font-weight:500">47</span></div>
+          <div class="info-row"><span class="lbl">Total pengeluaran</span><span style="font-weight:500">Rp 1.240.000</span></div>
+          <div class="info-row"><span class="lbl">NomNom Point</span><span style="color:var(--amber);font-weight:500">2.480 poin</span></div>
+        </div>
+      </div>
+      <div class="section-title">Alamat tersimpan</div>
+      <div class="card" style="margin-bottom:10px">
+        <div class="info-row"><span style="font-weight:500">🏠 Rumah</span><span class="badge badge-green">Utama</span></div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">Jl. Melati No.12, Jakarta Selatan</div>
+      </div>
+      <div class="card">
+        <div class="info-row"><span style="font-weight:500">🏢 Kantor</span></div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">Jl. Sudirman Kav.52, Jakarta Pusat</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PENJUAL ===================== -->
+  <div class="screen hidden" id="screen-seller">
+    <div class="tabs-inner">
+      <button class="tab-inner-btn active" onclick="sellerTab(this,'dashboard')">Dashboard</button>
+      <button class="tab-inner-btn" onclick="sellerTab(this,'orders')">Pesanan<span class="cart-badge" id="newOrderBadge">3</span></button>
+      <button class="tab-inner-btn" onclick="sellerTab(this,'menu')">Menu</button>
+      <button class="tab-inner-btn" onclick="sellerTab(this,'analytics')">Analitik</button>
+    </div>
+
+    <!-- Seller Dashboard -->
+    <div id="seller-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Pendapatan hari ini</div><div class="stat-val">Rp 487k</div><div class="stat-sub">↑ 12% dari kemarin</div></div>
+        <div class="stat-card"><div class="stat-label">Pesanan masuk</div><div class="stat-val">23</div><div class="stat-sub">3 menunggu konfirmasi</div></div>
+        <div class="stat-card"><div class="stat-label">Rating toko</div><div class="stat-val">4.8</div><div class="stat-sub">⭐ dari 142 ulasan</div></div>
+        <div class="stat-card"><div class="stat-label">Menu aktif</div><div class="stat-val">18</div><div class="stat-sub">2 habis stok</div></div>
+      </div>
+      <div class="alert alert-warn">2 item stok habis! Segera update menu.</div>
+      <div class="section-title">Pesanan perlu konfirmasi</div>
+      <div id="pendingOrders"></div>
+    </div>
+
+    <!-- Seller Orders -->
+    <div id="seller-orders" class="hidden">
+      <div class="tabs-inner">
+        <button class="tab-inner-btn active" onclick="filterOrders(this,'all')">Semua</button>
+        <button class="tab-inner-btn" onclick="filterOrders(this,'baru')">Baru (3)</button>
+        <button class="tab-inner-btn" onclick="filterOrders(this,'proses')">Diproses</button>
+        <button class="tab-inner-btn" onclick="filterOrders(this,'selesai')">Selesai</button>
+      </div>
+      <div id="allOrdersList"></div>
+    </div>
+
+    <!-- Seller Menu -->
+    <div id="seller-menu" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:14px;font-weight:500">Daftar Menu</span>
+        <button class="btn btn-primary" onclick="tambahMenu()">+ Tambah</button>
+      </div>
+      <div id="menuList"></div>
+    </div>
+
+    <!-- Seller Analytics -->
+    <div id="seller-analytics" class="hidden">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Pendapatan bulan ini</div><div class="stat-val">Rp 9.2jt</div></div>
+        <div class="stat-card"><div class="stat-label">Total pesanan</div><div class="stat-val">387</div></div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:500;margin-bottom:4px">Pendapatan 7 hari terakhir</div>
+        <div class="chart-bar-wrap" id="revenueChart"></div>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <div style="font-size:13px;font-weight:500;margin-bottom:10px">Menu terlaris</div>
+        <div id="topMenuList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== DRIVER ===================== -->
+  <div class="screen hidden" id="screen-driver">
+    <div class="tabs-inner">
+      <button class="tab-inner-btn active" onclick="driverTab(this,'status')">Status</button>
+      <button class="tab-inner-btn" onclick="driverTab(this,'delivery')">Antar</button>
+      <button class="tab-inner-btn" onclick="driverTab(this,'earnings')">Penghasilan</button>
+      <button class="tab-inner-btn" onclick="driverTab(this,'dprofile')">Profil</button>
+    </div>
+
+    <!-- Driver Status -->
+    <div id="driver-status">
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-row">
+          <div class="avatar" style="width:52px;height:52px;font-size:17px;background:#E1F5EE;color:#085041">AS</div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:500">Agus Santoso</div>
+            <div class="rating">★★★★★ <span style="color:var(--color-text-secondary);font-size:11px">4.95 · 1.203 antar</span></div>
+          </div>
+          <div style="text-align:right">
+            <div id="onlineToggle" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;background:var(--green-light);color:#085041;border:0.5px solid var(--green)" onclick="toggleOnline()">Online</div>
+          </div>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Antar hari ini</div><div class="stat-val" id="driverDeliveries">7</div></div>
+        <div class="stat-card"><div class="stat-label">Penghasilan hari ini</div><div class="stat-val" id="driverEarning">Rp 112k</div></div>
+        <div class="stat-card"><div class="stat-label">Jarak tempuh</div><div class="stat-val">34 km</div></div>
+        <div class="stat-card"><div class="stat-label">Rating hari ini</div><div class="stat-val">5.0</div></div>
+      </div>
+      <div id="incomingOrder" class="card" style="border-color:var(--primary);margin-top:4px">
+        <div style="font-size:13px;font-weight:500;color:var(--primary);margin-bottom:8px">Pesanan baru masuk!</div>
+        <div class="info-row"><span class="lbl">Restoran</span><span style="font-weight:500">Bakso Pak Kumis</span></div>
+        <div class="info-row"><span class="lbl">Jarak pickup</span><span>1.2 km</span></div>
+        <div class="info-row"><span class="lbl">Jarak antar</span><span>3.5 km</span></div>
+        <div class="info-row"><span class="lbl">Estimasi penghasilan</span><span style="color:var(--green);font-weight:500">Rp 18.000</span></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-outline" style="flex:1" onclick="tolakOrder()">Tolak</button>
+          <button class="btn btn-green" style="flex:1" onclick="terimaOrder()">Terima</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Driver Delivery Active -->
+    <div id="driver-delivery" class="hidden">
+      <div id="noDelivery" class="card" style="text-align:center;padding:30px">
+        <div style="font-size:32px;margin-bottom:8px">🛵</div>
+        <div style="font-size:14px;font-weight:500;margin-bottom:4px">Tidak ada pengantaran aktif</div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">Aktifkan status online untuk menerima order</div>
+      </div>
+      <div id="activeDelivery" class="hidden">
+        <div class="alert alert-success">Sedang mengantar pesanan</div>
+        <div class="card">
+          <div class="info-row"><span class="lbl">Pelanggan</span><span style="font-weight:500">Andi Utomo</span></div>
+          <div class="info-row"><span class="lbl">Alamat</span><span>Jl. Melati No.12, Jaksel</span></div>
+          <div class="info-row"><span class="lbl">Catatan</span><span style="font-size:12px;color:var(--color-text-secondary)">No samping rumah ada pohon mangga</span></div>
+          <div class="map-area" style="margin-top:10px">
+            <div class="map-road-h"></div>
+            <div class="map-road-v"></div>
+            <div class="map-pin" style="background:var(--blue);top:30%;left:35%">🍜</div>
+            <div class="map-pin" style="background:var(--green);bottom:25%;right:25%">📍</div>
+            <div class="map-pin map-pin-driver driver-car">🛵</div>
+          </div>
+          <button class="btn btn-green btn-full" onclick="selesaikanAntar()">Konfirmasi Terima</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Driver Earnings -->
+    <div id="driver-earnings" class="hidden">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Minggu ini</div><div class="stat-val">Rp 624k</div></div>
+        <div class="stat-card"><div class="stat-label">Bulan ini</div><div class="stat-val">Rp 2.8jt</div></div>
+      </div>
+      <div class="card" style="margin-top:2px">
+        <div style="font-size:13px;font-weight:500;margin-bottom:4px">Penghasilan 7 hari terakhir</div>
+        <div class="chart-bar-wrap" id="driverChart"></div>
+      </div>
+      <div class="section-title">Riwayat pengantaran hari ini</div>
+      <div id="driverHistory"></div>
+    </div>
+
+    <!-- Driver Profile -->
+    <div id="driver-dprofile" class="hidden">
+      <div class="card">
+        <div class="card-row" style="margin-bottom:10px">
+          <div class="avatar" style="width:52px;height:52px;font-size:17px;background:#E1F5EE;color:#085041">AS</div>
+          <div>
+            <div style="font-size:15px;font-weight:500">Agus Santoso</div>
+            <div style="font-size:12px;color:var(--color-text-secondary)">+62 813-9876-5432</div>
+            <span class="badge badge-green">Terverifikasi</span>
+          </div>
+        </div>
+        <div style="border-top:0.5px solid var(--border);padding-top:10px">
+          <div class="info-row"><span class="lbl">Kendaraan</span><span style="font-weight:500">Honda Beat 2022</span></div>
+          <div class="info-row"><span class="lbl">Plat nomor</span><span>B 1234 XY</span></div>
+          <div class="info-row"><span class="lbl">Bergabung sejak</span><span>Maret 2023</span></div>
+          <div class="info-row"><span class="lbl">Total pengantaran</span><span style="font-weight:500">1.203</span></div>
+          <div class="info-row"><span class="lbl">Rating keseluruhan</span><span style="color:var(--amber);font-weight:500">★ 4.95</span></div>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-full" style="margin-top:10px">Edit Profil</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var cart={};var isOnline=true;var hasActiveDelivery=false;
+
+var foods=[
+  {id:1,name:'Bakso Spesial',resto:'Bakso Pak Kumis',price:18000,emoji:'🍲',cat:'nasi'},
+  {id:2,name:'Nasi Goreng',resto:'Warung Bu Sari',price:22000,emoji:'🍳',cat:'nasi'},
+  {id:3,name:'Mie Ayam',resto:'Mie Pak Dodi',price:20000,emoji:'🍜',cat:'mie'},
+  {id:4,name:'Soto Ayam',resto:'Soto Mbak Yem',price:25000,emoji:'🥣',cat:'nasi'},
+  {id:5,name:'Keripik Singkong',resto:'Snack Corner',price:12000,emoji:'🥨',cat:'snack'},
+  {id:6,name:'Es Teh Manis',resto:'Warung Bu Sari',price:6000,emoji:'🧋',cat:'minuman'},
+  {id:7,name:'Indomie Goreng',resto:'Mie Pak Dodi',price:15000,emoji:'🍝',cat:'mie'},
+  {id:8,name:'Pisang Goreng',resto:'Snack Corner',price:10000,emoji:'🍌',cat:'snack'},
+];
+
+var sellerMenuItems=[
+  {name:'Bakso Biasa',price:15000,stok:true},
+  {name:'Bakso Spesial',price:18000,stok:true},
+  {name:'Bakso Urat',price:20000,stok:false},
+  {name:'Mie Ayam Bakso',price:22000,stok:true},
+  {name:'Es Teh',price:5000,stok:false},
+];
+
+var days=['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+var revenueData=[320,450,280,510,390,640,487];
+var driverData=[85,112,95,130,88,145,112];
+
+function renderFoods(list){
+  var g=document.getElementById('foodGrid');
+  g.innerHTML=list.map(f=>`
+    <div class="food-card" onclick="addToCart(${f.id})">
+      <div class="food-img">${f.emoji}</div>
+      <div class="food-info">
+        <div class="food-name">${f.name}</div>
+        <div class="food-resto">${f.resto}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <span class="food-price">Rp ${f.price.toLocaleString('id')}</span>
+          ${cart[f.id]?`<div class="qty-ctrl"><button class="qty-btn" onclick="event.stopPropagation();removeFromCart(${f.id})">−</button><span class="qty-num">${cart[f.id]}</span><button class="qty-btn" onclick="event.stopPropagation();addToCart(${f.id})">+</button></div>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+var currentCat='all';
+function filterCat(el,cat){
+  document.querySelectorAll('#catTabs .tab-inner-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');currentCat=cat;filterFood();
+}
+function filterFood(){
+  var q=document.getElementById('searchInput').value.toLowerCase();
+  var filtered=foods.filter(f=>(currentCat==='all'||f.cat===currentCat)&&(f.name.toLowerCase().includes(q)||f.resto.toLowerCase().includes(q)));
+  renderFoods(filtered);
+}
+
+function addToCart(id){cart[id]=(cart[id]||0)+1;updateCart();filterFood();}
+function removeFromCart(id){if(cart[id]>1)cart[id]--;else delete cart[id];updateCart();filterFood();}
+function updateCart(){
+  var total=0,count=0;
+  Object.keys(cart).forEach(id=>{var f=foods.find(x=>x.id==id);if(f){total+=f.price*cart[id];count+=cart[id];}});
+  var bar=document.getElementById('cartBar');
+  if(count>0){bar.classList.remove('hidden');document.getElementById('cartTotal').textContent='Rp '+total.toLocaleString('id');document.getElementById('cartCount').textContent=count+' item';}
+  else bar.classList.add('hidden');
+}
+function checkout(){sendPrompt('Saya ingin checkout pesanan NomNom saya');}
+
+function renderHistory(){
+  var h=document.getElementById('historyList');
+  var items=[
+    {name:'Bakso Spesial × 2',resto:'Bakso Pak Kumis',total:'Rp 58.000',status:'Selesai',date:'Kemarin',bg:'badge-green'},
+    {name:'Nasi Goreng + Es Teh',resto:'Warung Bu Sari',total:'Rp 28.000',status:'Selesai',date:'2 hari lalu',bg:'badge-green'},
+    {name:'Mie Ayam',resto:'Mie Pak Dodi',total:'Rp 20.000',status:'Dibatalkan',date:'3 hari lalu',bg:'badge-red'},
+  ];
+  h.innerHTML=items.map(i=>`<div class="card" style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px">
+      <div><div style="font-size:13px;font-weight:500">${i.name}</div><div style="font-size:11px;color:var(--color-text-secondary)">${i.resto} · ${i.date}</div></div>
+      <span class="badge ${i.bg}">${i.status}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:13px;font-weight:500">${i.total}</span>
+      <button class="btn btn-outline" style="padding:5px 12px;font-size:11px" onclick="sendPrompt('Pesan ulang dari ${i.resto}')">Pesan Lagi ↗</button>
+    </div>
+  </div>`).join('');
+}
+
+function renderPendingOrders(){
+  var el=document.getElementById('pendingOrders');
+  el.innerHTML=[
+    {id:'#NN-1421',name:'Andi U.',items:'Bakso Spesial × 2, Es Teh',total:'Rp 41.000'},
+    {id:'#NN-1422',name:'Siti R.',items:'Bakso Urat × 1',total:'Rp 20.000'},
+    {id:'#NN-1423',name:'Budi H.',items:'Mie Ayam Bakso × 3',total:'Rp 66.000'},
+  ].map(o=>`<div class="card" style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+      <div><span style="font-size:12px;font-weight:500">${o.id}</span> · <span style="font-size:12px;color:var(--color-text-secondary)">${o.name}</span></div>
+      <span class="badge badge-amber">Menunggu</span>
+    </div>
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:8px">${o.items}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:13px;font-weight:500">${o.total}</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-outline" style="padding:5px 10px;font-size:11px" onclick="tolakPesanan(this)">Tolak</button>
+        <button class="btn btn-primary" style="padding:5px 10px;font-size:11px" onclick="terimaP(this)">Terima</button>
+      </div>
+    </div>
+  </div>`).join('');
+}
+
+function terimaP(btn){
+  var card=btn.closest('.card');card.querySelector('.badge').className='badge badge-green';card.querySelector('.badge').textContent='Diproses';
+  btn.textContent='Masak';btn.className='btn btn-outline';btn.style.cssText='padding:5px 10px;font-size:11px';
+  btn.previousElementSibling.style.display='none';
+  var badge=document.getElementById('newOrderBadge');var n=parseInt(badge.textContent)-1;badge.textContent=n;if(n===0)badge.style.display='none';
+}
+function tolakPesanan(btn){btn.closest('.card').style.opacity='0.4';}
+
+function renderAllOrders(){
+  var el=document.getElementById('allOrdersList');
+  var orders=[
+    {id:'#NN-1421',name:'Andi U.',total:'Rp 41.000',status:'Baru',bg:'badge-amber'},
+    {id:'#NN-1418',name:'Dewi M.',total:'Rp 55.000',status:'Diproses',bg:'badge-blue'},
+    {id:'#NN-1415',name:'Rudi S.',total:'Rp 28.000',status:'Diantar',bg:'badge-green'},
+    {id:'#NN-1410',name:'Lisa K.',total:'Rp 33.000',status:'Selesai',bg:'badge-gray'},
+  ];
+  el.innerHTML=orders.map(o=>`<div class="card" style="margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><span style="font-size:13px;font-weight:500">${o.id}</span><br><span style="font-size:12px;color:var(--color-text-secondary)">${o.name}</span></div>
+      <div style="text-align:right"><span class="badge ${o.bg}">${o.status}</span><br><span style="font-size:13px;font-weight:500;margin-top:4px;display:block">${o.total}</span></div>
+    </div>
+  </div>`).join('');
+}
+
+function renderMenuList(){
+  var el=document.getElementById('menuList');
+  el.innerHTML=sellerMenuItems.map((m,i)=>`<div class="menu-item-row">
+    <div><div style="font-size:13px;font-weight:500">${m.name}</div><div style="font-size:12px;color:var(--color-text-secondary)">Rp ${m.price.toLocaleString('id')}</div></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="badge ${m.stok?'badge-green':'badge-red'}">${m.stok?'Tersedia':'Habis'}</span>
+      <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="toggleStok(${i})">Edit</button>
+    </div>
+  </div>`).join('');
+}
+function toggleStok(i){sellerMenuItems[i].stok=!sellerMenuItems[i].stok;renderMenuList();}
+function tambahMenu(){sendPrompt('Tambahkan menu baru di dasbor penjual NomNom');}
+
+function renderRevenueChart(){
+  var el=document.getElementById('revenueChart');
+  var max=Math.max(...revenueData);
+  el.innerHTML=days.map((d,i)=>`<div class="bar-col"><div class="bar-val">Rp${Math.round(revenueData[i])}k</div><div class="bar" style="height:${Math.round(revenueData[i]/max*60)+10}px;background:${i===6?'var(--primary)':'var(--primary-light)'}"></div><div class="bar-lbl">${d}</div></div>`).join('');
+}
+function renderTopMenu(){
+  var el=document.getElementById('topMenuList');
+  var tops=[{name:'Bakso Spesial',sold:89,pct:100},{name:'Mie Ayam Bakso',sold:67,pct:75},{name:'Bakso Biasa',sold:54,pct:61},{name:'Bakso Urat',sold:41,pct:46}];
+  el.innerHTML=tops.map(t=>`<div style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${t.name}</span><span style="color:var(--color-text-secondary)">${t.sold} terjual</span></div>
+    <div style="height:6px;background:var(--color-background-secondary);border-radius:3px"><div style="height:100%;width:${t.pct}%;background:var(--primary);border-radius:3px"></div></div>
+  </div>`).join('');
+}
+
+function renderDriverChart(){
+  var el=document.getElementById('driverChart');
+  var max=Math.max(...driverData);
+  el.innerHTML=days.map((d,i)=>`<div class="bar-col"><div class="bar-val">Rp${driverData[i]}k</div><div class="bar" style="height:${Math.round(driverData[i]/max*60)+10}px;background:${i===6?'#1D9E75':'#9FE1CB'}"></div><div class="bar-lbl">${d}</div></div>`).join('');
+}
+function renderDriverHistory(){
+  var el=document.getElementById('driverHistory');
+  var items=[
+    {id:'#NN-1421',from:'Bakso Pak Kumis',to:'Jl. Melati 12',earn:'Rp 18.000',time:'14:32'},
+    {id:'#NN-1418',from:'Warung Bu Sari',to:'Jl. Kenanga 5',earn:'Rp 15.000',time:'13:10'},
+    {id:'#NN-1415',from:'Mie Pak Dodi',to:'Jl. Anggrek 8',earn:'Rp 12.000',time:'11:45'},
+  ];
+  el.innerHTML=items.map(i=>`<div class="card" style="margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between">
+      <div><div style="font-size:12px;font-weight:500">${i.id} · ${i.time}</div><div style="font-size:11px;color:var(--color-text-secondary)">${i.from} → ${i.to}</div></div>
+      <span style="font-size:13px;font-weight:500;color:var(--green)">${i.earn}</span>
+    </div>
+  </div>`).join('');
+}
+
+function toggleOnline(){
+  isOnline=!isOnline;
+  var el=document.getElementById('onlineToggle');
+  el.textContent=isOnline?'Online':'Offline';
+  el.style.background=isOnline?'var(--green-light)':'var(--color-background-secondary)';
+  el.style.color=isOnline?'#085041':'var(--color-text-secondary)';
+  el.style.borderColor=isOnline?'var(--green)':'var(--border)';
+}
+function terimaOrder(){
+  hasActiveDelivery=true;
+  document.getElementById('incomingOrder').style.display='none';
+  document.getElementById('driverDeliveries').textContent='8';
+  alert('Pesanan diterima! Segera menuju restoran.');
+}
+function tolakOrder(){document.getElementById('incomingOrder').style.opacity='0.5';}
+function selesaikanAntar(){
+  document.getElementById('activeDelivery').classList.add('hidden');
+  document.getElementById('noDelivery').classList.remove('hidden');
+  sendPrompt('Pengantaran selesai, tampilkan ringkasan dan penilaian driver NomNom');
+}
+function hubungiDriver(){sendPrompt('Hubungi driver pengantaran NomNom saya');}
+
+function switchDash(role){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+role).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.trim().toLowerCase().startsWith(role==='buyer'?'pem':role==='seller'?'pen':'dri'))b.classList.add('active');});
+  if(role==='buyer'){renderFoods(foods);renderHistory();}
+  else if(role==='seller'){renderPendingOrders();renderAllOrders();renderMenuList();renderRevenueChart();renderTopMenu();}
+  else{renderDriverChart();renderDriverHistory();}
+}
+
+function buyerTab(el,tab){
+  document.querySelectorAll('#screen-buyer .tabs-inner .tab-inner-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  ['home','track','history','profile'].forEach(t=>document.getElementById('buyer-'+t).classList.toggle('hidden',t!==tab));
+}
+function sellerTab(el,tab){
+  document.querySelectorAll('#screen-seller .tabs-inner .tab-inner-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  ['dashboard','orders','menu','analytics'].forEach(t=>document.getElementById('seller-'+t).classList.toggle('hidden',t!==tab));
+}
+function driverTab(el,tab){
+  document.querySelectorAll('#screen-driver .tabs-inner .tab-inner-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  ['status','delivery','earnings','dprofile'].forEach(t=>document.getElementById('driver-'+t).classList.toggle('hidden',t!==tab));
+  if(tab==='delivery'){
+    if(hasActiveDelivery){document.getElementById('activeDelivery').classList.remove('hidden');document.getElementById('noDelivery').classList.add('hidden');}
+    else{document.getElementById('activeDelivery').classList.add('hidden');document.getElementById('noDelivery').classList.remove('hidden');}
+  }
+}
+function filterOrders(el,f){
+  document.querySelectorAll('#seller-orders .tabs-inner .tab-inner-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderAllOrders();
+}
+
+switchDash('buyer');
+</script>
